@@ -1,17 +1,15 @@
 package com.example.employeesApp.model;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Builder
 @Table(name = "address")
 public class Address {
     @Id
@@ -21,13 +19,11 @@ public class Address {
     private String street;
     private String zip_code;
     private  String type;
-   // @ManyToOne(cascade = CascadeType.ALL)
-   // @JoinColumn(name = "employee_id")
-   // private Employee employee;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_id")
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @JsonBackReference
+    //@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Employee employee;
 
     @Override

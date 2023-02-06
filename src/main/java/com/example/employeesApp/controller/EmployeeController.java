@@ -25,9 +25,20 @@ public class EmployeeController {
     @Autowired
     private AddressService addressService;
     @PostMapping("/addEmployee")
-    public Employee newEmployee(@RequestBody Employee employee){
-       return employeeService.saveEmployee(employee);
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<Object> newEmployee(@RequestBody Employee employee){
+
+                return new ResponseEntity<>(employeeService.saveEmployee(employee), HttpStatus.CREATED);
     }
+    @PutMapping("/updateEmployee/{id}")
+    public ResponseEntity<Object> updateEmployee(@RequestBody Employee employee,@PathVariable Integer id){
+        if (employee.getName().isEmpty()||employee.getEmail().isEmpty()) {
+            return new ResponseEntity<>("A missing name or email.", HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(employeeService.updateEmployee(employee,id), HttpStatus.OK);
+
+    }
+
     @GetMapping("/employees")
     public List<Employee> employeesList(){
         return employeeService.getEmployees();
@@ -64,16 +75,15 @@ public class EmployeeController {
         return new ResponseEntity<>(employeeDto, HttpStatus.OK);
     }
 
-    @PutMapping("/updateEmployee/{id}")
-    public Employee updateEmployee(@RequestBody Employee employee,@PathVariable Integer id){
-        return employeeService.updateEmployee(employee,id);
-    }
-    @DeleteMapping("/delete/{id}")
-    public String deleteEmployee(@PathVariable Integer id){
 
-        return employeeService.deleteEmployee(id);
+    @DeleteMapping("/delete/{id}")
+    public void deleteEmployee(@PathVariable Integer id){
+
+         employeeService.deleteEmployee(id);
     }
+
 
 
 
 }
+

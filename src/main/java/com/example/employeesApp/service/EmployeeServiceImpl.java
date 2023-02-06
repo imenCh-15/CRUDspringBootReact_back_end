@@ -16,11 +16,17 @@ public class EmployeeServiceImpl implements EmployeeService {
     private EmployeeRepository employeeRepository;
     @Autowired
     private ModelMapper mapper;
+
+    public EmployeeServiceImpl(EmployeeRepository employeeRepository) {
+        this.employeeRepository=employeeRepository;
+    }
+
     @Override
     public Employee saveEmployee(Employee employee) {
-       return employeeRepository.save(employee);
+        return employeeRepository.save(employee);
     }
-   @Override public List<Employee> getEmployees(){
+   @Override
+   public List<Employee> getEmployees(){
        return employeeRepository.findAll();
     }
     @Override
@@ -39,14 +45,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     }
 
-
-
-
-
-
-
     public Employee getEmployeeById(Integer id){
-        return employeeRepository.findById(id).orElseThrow(()->new EmployeeNotFoundException(id));
+        return employeeRepository.findById(id).orElseThrow(
+                ()->new EmployeeNotFoundException(id));
     }
     public EmployeeDTO getEmployeeDtoById(Integer id) {
         Employee employee = employeeRepository.findById(id).orElseThrow(() -> new EmployeeNotFoundException( id));
@@ -54,20 +55,16 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     public Employee updateEmployee(Employee newEmployee,Integer id){
-        return  employeeRepository.findById(id).map(employee->{
-                    employee.setName(newEmployee.getName());
-                    employee.setEmployeeAddresses(newEmployee.getEmployeeAddresses());
-                    employee.setEmail(newEmployee.getEmail());
-                    return employeeRepository.save(employee);
+        employeeRepository.findById(id)
+                .orElseThrow(() -> new EmployeeNotFoundException(id));
+        newEmployee.setId(id);
+        return employeeRepository.save(newEmployee);
 
-        }).orElseThrow(()->new EmployeeNotFoundException(id));
     }
-    public String deleteEmployee (Integer id){
-        if(!employeeRepository.existsById(id))
-            throw new EmployeeNotFoundException(id);
+    public void deleteEmployee (Integer id){
+        employeeRepository.findById(id)
+                .orElseThrow(() -> new EmployeeNotFoundException(id));
         employeeRepository.deleteById(id);
-
-        return "Employee with id "+id+ " has been deleted";
     }
 
 

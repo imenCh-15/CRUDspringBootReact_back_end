@@ -27,11 +27,29 @@ public class AddressServiceImpl implements AddressService {
        if(findMach(employeeAddresses,address))throw new AddressException("Address already exists!");
 
        return employeeRepository.findById(id).map(employee -> {
-           // employee.addAddress(address);
           address.setEmployee(employee);
            return addressRepository.save(address);
         }).orElseThrow(()->new EmployeeNotFoundException(id));
     }
+
+    @Override
+    public void addEmployeeAddress(Integer employeeId, Address address) {
+        Employee employee = employeeRepository.findById(employeeId).orElseThrow(()->new EmployeeNotFoundException(employeeId));
+        if (employee != null) {
+            List<Address> addresses = employee.getEmployeeAddresses();
+            if (addresses == null) {
+                addresses = new ArrayList<>();
+            }
+            address.setEmployee(employee);
+            Address newAddress=addressRepository.save(address);
+            addresses.add(newAddress);
+            employee.setEmployeeAddresses(addresses);
+            employeeRepository.save(employee);
+
+        }
+    }
+
+
     @Override
     public Address getAddressById(Integer id){
         return addressRepository.findById(id).orElseThrow(()->new AddressException("Could not found the employee address with id : "+id));
@@ -39,52 +57,43 @@ public class AddressServiceImpl implements AddressService {
     @Override
     public List<Address> getEmployeeAddresses(Integer id) {
         List<Address> addressRestList = new ArrayList<>();
-
         List<Address> addressesList= addressRepository.findByEmployeeId(id);
         if(addressesList!=null&&!addressesList.isEmpty()) {
             addressRestList = addressesList;
         }
 
-
         return addressRestList;
     }
 
-    public Address update(Address address,Integer id) {
-        Employee  employee = employeeRepository.findById(address.getEmployee().getId()).orElseThrow(()->new EmployeeNotFoundException(address.getEmployee().getId()));
-        Address add=addressRepository.findById(id).orElseThrow(()->new EmployeeNotFoundException(id));
-
-        address.setEmployee(employee);
-        employee.setId(add.getId());
-         return addressRepository.save(address);
-
-    }
-
-
 
     @Override
-    public Address updateAddress(Integer id ,Integer addressId, Address address){
-        List<Address>employeeAddresses= getEmployeeAddresses(id);
-        if(findMach(employeeAddresses,address))throw new AddressException("Address already exists!");
+    public Address updateAddress(Integer employeeId ,Integer addressId, Address address){
+        Employee employee =employeeRepository.findById(employeeId).orElseThrow(
+                () ->new EmployeeNotFoundException(employeeId));
+        Address employeeAddress =addressRepository.findById(addressId).orElseThrow(() ->
+                new AddressException("Could not found the employee address with id : "+addressId));
+        if(employeeAddress.getEmployee().getId()!=employee.getId()){
+            throw new AddressException("This address does not belong to the employee");
+        }
+        List<Address>employeeAddresses= getEmployeeAddresses(employeeId);
+        if(findMach(employeeAddresses,address)) {
+            throw new AddressException("Address already exists!");
+        }
 
-        return employeeRepository.findById(id).map(employee -> {
-            //address.setEmployee(employee);
-            return addressRepository.findById(addressId).map(add->{
-                add.setCity(address.getCity());
-                add.setStreet(address.getStreet());
-                add.setZip_code(address.getZip_code());
-                return addressRepository.save(add);
+        employeeAddress.setCity(address.getCity());
+        employeeAddress.setStreet(address.getStreet());
+        employeeAddress.setZip_code(address.getZip_code());
+            return addressRepository.save(employeeAddress);
 
-            }).orElseThrow(()->new EmployeeNotFoundException(id));
-        }).orElseThrow(()->new EmployeeNotFoundException(id));
+
     }
+
 
     @Override
     public void deleteAddress(@PathVariable Integer addressId){
 
-        if(!addressRepository.existsById(addressId)) {
-            System.out.println(addressId);
-            throw new AddressException("Could not found the employee address with id : "+addressId);
-        }
+      addressRepository.findById(addressId).orElseThrow(
+              () -> new AddressException("Could not found the employee address with id : "+addressId));
         addressRepository.deleteById(addressId);
     }
     public boolean findMach(final List<Address> list, final Address address){

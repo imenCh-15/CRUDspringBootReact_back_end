@@ -16,5 +16,5 @@ public interface EmployeeService {
 
     public Employee updateEmployee(Employee employee, @PathVariable Integer id);
 
-    public String deleteEmployee(@PathVariable Integer id);
+    public void deleteEmployee(@PathVariable Integer id);
 }
